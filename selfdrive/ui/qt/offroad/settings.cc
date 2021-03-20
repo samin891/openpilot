@@ -64,7 +64,7 @@ ParamsToggle::ParamsToggle(QString param, QString title, QString description, QS
   layout->addWidget(label);
 
   // toggle switch
-  Toggle *toggle = new Toggle(this);
+  toggle = new Toggle(this);
   toggle->setFixedSize(150, 100);
   layout->addWidget(toggle);
   QObject::connect(toggle, SIGNAL(stateChanged(int)), this, SLOT(checkboxClicked(int)));
@@ -104,12 +104,6 @@ QWidget * toggles_panel() {
                                             "../assets/offroad/icon_warning.png"
                                               ));
   toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("RecordFront",
-                                            "Record and Upload Driver Camera",
-                                            "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
-                                            "../assets/offroad/icon_network.png"
-                                            ));
-  toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamsToggle("IsRHD",
                                             "Enable Right-Hand Drive",
                                             "Allow openpilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",
@@ -128,75 +122,20 @@ QWidget * toggles_panel() {
                                             "../assets/offroad/icon_shell.png"
                                             ));
 
-  QWidget *widget = new QWidget;
-  widget->setLayout(toggles_list);
-  return widget;
-}
+  ParamsToggle *record_toggle = new ParamsToggle("RecordFront",
+                                            "Record and Upload Driver Camera",
+                                            "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
+                                            "../assets/offroad/icon_network.png");
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(record_toggle);
 
-QWidget * community_panel() {
-  QVBoxLayout *toggles_list = new QVBoxLayout();
-  toggles_list->setMargin(50);
-
-  toggles_list->addWidget(new ParamsToggle("CommunityFeaturesToggle",
-                                            "Enable Community Features",
-                                            "Use features from the open source community that are not maintained or supported by comma.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features.",
-                                            "../assets/offroad/icon_openpilot.png"
-                                              ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("LongControlEnabled",
-                                            "Enable HKG Long Control",
-                                            "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
-                                            "../assets/offroad/icon_road.png"
-                                              ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("MadModeEnabled",
-                                            "Enable HKG MAD mode",
-                                            "Only for Car without long control, Openpilot will engage when turn cruise control on",
-                                            "../assets/offroad/icon_openpilot.png"
-                                              ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("AutoLaneChangeEnabled",
-                                            "Enable Auto Lane Change Assist",
-                                            "warnings: it is beta, be careful!!",
-                                            "../assets/offroad/icon_road.png"
-                                              ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("SccSmootherEnabled",
-                                            "Enable SCC Smoother",
-                                            "WARNING: Use at your own risk !!, It automatically adjusts the maximum set speed to help with slight smooth acceleration/deceleration. When this mode is activated, you can switch to stock mode using the CANCEL or GAP button on the vehicle steering wheel.",
-                                            "../assets/offroad/icon_road.png"
-                                            ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("SccSmootherSlowOnCurves",
-                                            "Enable Slow On Curves",
-                                            "",
-                                            "../assets/offroad/icon_road.png"
-                                            ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("SccSmootherSyncGasPressed",
-                                            "Sync set speed on gas pressed",
-                                            "",
-                                            "../assets/offroad/icon_road.png"
-                                            ));
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("SccSmootherSwitchGapOnly",
-                                            "Switch only with cruise gap button",
-                                            "",
-                                            "../assets/offroad/icon_road.png"
-                                            ));
-                                            toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new ParamsToggle("ShowDebugUI",
-                                            "Show Debug UI",
-                                            "",
-                                            "../assets/offroad/icon_shell.png"
-                                            ));
+  bool record_lock = Params().read_db_bool("RecordFrontLock");
+  record_toggle->toggle->setEnabled(!record_lock);
 
   QWidget *widget = new QWidget;
   widget->setLayout(toggles_list);
   return widget;
 }
-
-
 
 QWidget * device_panel() {
 
@@ -350,6 +289,69 @@ QWidget * network_panel(QWidget * parent) {
   Networking *w = new Networking(parent);
 #endif
   return w;
+}
+
+QWidget * community_panel() {
+  QVBoxLayout *toggles_list = new QVBoxLayout();
+  toggles_list->setMargin(50);
+
+  toggles_list->addWidget(new ParamsToggle("CommunityFeaturesToggle",
+                                            "Enable Community Features",
+                                            "Use features from the open source community that are not maintained or supported by comma.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features.",
+                                            "../assets/offroad/icon_openpilot.png"
+                                              ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("LongControlEnabled",
+                                            "Enable HKG Long Control",
+                                            "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
+                                            "../assets/offroad/icon_road.png"
+                                              ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("MadModeEnabled",
+                                            "Enable HKG MAD mode",
+                                            "Only for Car without long control, Openpilot will engage when turn cruise control on",
+                                            "../assets/offroad/icon_openpilot.png"
+                                              ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("AutoLaneChangeEnabled",
+                                            "Enable Auto Lane Change Assist",
+                                            "warnings: it is beta, be careful!!",
+                                            "../assets/offroad/icon_road.png"
+                                              ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("SccSmootherEnabled",
+                                            "Enable SCC Smoother",
+                                            "WARNING: Use at your own risk !!, It automatically adjusts the maximum set speed to help with slight smooth acceleration/deceleration. When this mode is activated, you can switch to stock mode using the CANCEL or GAP button on the vehicle steering wheel.",
+                                            "../assets/offroad/icon_road.png"
+                                            ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("SccSmootherSlowOnCurves",
+                                            "Enable Slow On Curves",
+                                            "",
+                                            "../assets/offroad/icon_road.png"
+                                            ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("SccSmootherSyncGasPressed",
+                                            "Sync set speed on gas pressed",
+                                            "",
+                                            "../assets/offroad/icon_road.png"
+                                            ));
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("SccSmootherSwitchGapOnly",
+                                            "Switch only with cruise gap button",
+                                            "",
+                                            "../assets/offroad/icon_road.png"
+                                            ));
+                                            toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamsToggle("ShowDebugUI",
+                                            "Show Debug UI",
+                                            "",
+                                            "../assets/offroad/icon_shell.png"
+                                            ));
+
+  QWidget *widget = new QWidget;
+  widget->setLayout(toggles_list);
+  return widget;
 }
 
 
