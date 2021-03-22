@@ -101,11 +101,20 @@ class LongitudinalMpc():
 
     # scc smoother
     cruise_gap = int(clip(CS.cruiseGap, 1., 4.))
-    # TR = interp(float(cruise_gap), [1., 2., 3., 4.], [1.0, 1.3, 1.6, 2.0])
-    TR = interp(v_ego, [3., 30.], [1., 2.5])
+    TR = interp(float(cruise_gap), [1., 2., 3., 4.], [1.0, 1.3, 1.7, 2.2])
+    #TR = interp(v_ego, [3., 30.], [1., 2.5])
 
     if self.cruise_gap != cruise_gap:
       self.cruise_gap = cruise_gap
+
+      self.libmpc.init(MPC_COST_LONG.TTC, MPC_COST_LONG.DISTANCE,
+                       MPC_COST_LONG.ACCELERATION, MPC_COST_LONG.JERK)
+      self.cur_state[0].v_ego = v_ego
+      self.cur_state[0].a_ego = 0.0
+      self.v_mpc = v_ego
+      self.a_mpc = CS.aEgo
+      self.prev_lead_status = False
+      return
 
     self.n_its = self.libmpc.run_mpc(self.cur_state, self.mpc_solution, self.a_lead_tau, a_lead, TR)
     self.duration = int((sec_since_boot() - t) * 1e9)
