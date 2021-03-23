@@ -225,12 +225,6 @@ QWidget * community_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
   toggles_list->setMargin(50);
 
-  toggles_list->addWidget(new ParamControl("CommunityFeaturesToggle",
-                                            "Enable Community Features",
-                                            "Use features from the open source community that are not maintained or supported by comma.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features.",
-                                            "../assets/offroad/icon_openpilot.png"
-                                              ));
-  toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("LongControlEnabled",
                                             "Enable HKG Long Control",
                                             "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
