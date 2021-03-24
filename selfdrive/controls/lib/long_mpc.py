@@ -70,7 +70,7 @@ class LongitudinalMpc():
     self.cur_state[0].x_ego = 0.0
 
     if lead is not None and lead.status:
-      x_lead = max(0, lead.dRel - 0.5)
+      x_lead = lead.dRel
       v_lead = max(0.0, lead.vLead)
       a_lead = lead.aLeadK
 
@@ -78,7 +78,7 @@ class LongitudinalMpc():
         v_lead = 0.0
         a_lead = 0.0
 
-      self.a_lead_tau = max(lead.aLeadTau, (a_lead ** 2 * math.pi) / (2 * (v_lead + 0.01) ** 2))
+      self.a_lead_tau = lead.aLeadTau
       self.new_lead = False
       if not self.prev_lead_status or abs(x_lead - self.prev_lead_x) > 2.5:
         self.libmpc.init_with_simulation(self.v_mpc, x_lead, v_lead, a_lead, self.a_lead_tau)
@@ -101,7 +101,7 @@ class LongitudinalMpc():
 
     # scc smoother
     cruise_gap = int(clip(CS.cruiseGap, 1., 4.))
-    TR = interp(float(cruise_gap), [1., 2., 3., 4.], [1.0, 1.3, 1.7, 2.2])
+    TR = interp(float(cruise_gap), [1., 2., 3., 4.], [1.2, 1.5, 1.8, 2.2])
     #TR = interp(v_ego, [3., 30.], [1., 2.5])
 
     if self.cruise_gap != cruise_gap:

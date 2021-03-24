@@ -9,7 +9,7 @@ from selfdrive.car.hyundai.hyundaican import create_lkas11, create_clu11, create
   create_scc11, create_scc12, create_scc13, create_scc14, \
   create_mdps12
 from selfdrive.car.hyundai.scc_smoother import SccSmoother
-from selfdrive.car.hyundai.values import Buttons, SteerLimitParams, CAR, FEATURES
+from selfdrive.car.hyundai.values import Buttons, CAR, FEATURES
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
 from common.params import Params
@@ -18,21 +18,31 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 min_set_speed = 30 * CV.KPH_TO_MS
 
 # Accel limits
-ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
-ACCEL_MAX = 1.5  # 1.5 m/s2
-ACCEL_MIN = -3.9  # 3   m/s2
-ACCEL_SCALE = 3.0
-# SPAS steering limits
-STEER_ANG_MAX = 360  # SPAS Max Angle
-STEER_ANG_MAX_RATE = 1.5  # SPAS Degrees per ms
+class CarControllerParams:
+  ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
+  ACCEL_MAX = 1.5  # 1.5 m/s2
+  ACCEL_MIN = -3.5  # 3   m/s2
+  ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
+  # SPAS steering limits
+  STEER_ANG_MAX = 360  # SPAS Max Angle
+  STEER_ANG_MAX_RATE = 1.5  # SPAS Degrees per ms
+
+# Steer torque limits
+class SteerLimitParams:
+  STEER_MAX = 384   # 409 is the max, 255 is stock
+  STEER_DELTA_UP = 3
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
 
 
 def accel_hysteresis(accel, accel_steady):
   # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
-  if accel > accel_steady + ACCEL_HYST_GAP:
-    accel_steady = accel - ACCEL_HYST_GAP
-  elif accel < accel_steady - ACCEL_HYST_GAP:
-    accel_steady = accel + ACCEL_HYST_GAP
+  if accel > accel_steady + CarControllerParams.ACCEL_HYST_GAP:
+    accel_steady = accel - CarControllerParams.ACCEL_HYST_GAP
+  elif accel < accel_steady - CarControllerParams.ACCEL_HYST_GAP:
+    accel_steady = accel + CarControllerParams.ACCEL_HYST_GAP
   accel = accel_steady
 
   return accel, accel_steady
@@ -93,7 +103,8 @@ class CarController():
     # gas and brake
     apply_accel = actuators.gas - actuators.brake
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady)
-    apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
+    apply_accel = clip(apply_accel * CarControllerParams.ACCEL_SCALE,
+                       CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
 
     # Steering Torque
     new_steer = int(round(actuators.steer * SteerLimitParams.STEER_MAX))
@@ -223,9 +234,9 @@ class CarController():
     # send scc to car if longcontrol enabled and SCC not on bus 0 or ont live
     if self.longcontrol and CS.cruiseState_enabled and (CS.scc_bus or not self.scc_live) and frame % 2 == 0:
 
-      apply_accel, lead_drel = self.scc_smoother.get_fused_accel(apply_accel, aReqValue, controls.sm)
-      controls.fused_accel = apply_accel
-      controls.lead_drel = lead_drel
+      #apply_accel, lead_drel = self.scc_smoother.get_fused_accel(apply_accel, aReqValue, controls.sm)
+      #controls.fused_accel = apply_accel
+      #controls.lead_drel = lead_drel
 
       can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, self.scc_live, CS.scc12))
       can_sends.append(create_scc11(self.packer, frame, enabled, set_speed, controls.sm['radarState'], self.scc_live, CS.scc11))
