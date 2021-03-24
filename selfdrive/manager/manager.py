@@ -31,6 +31,7 @@ def manager_init(spinner=None):
 
   default_params = [
     ("CommunityFeaturesToggle", "0"),
+    ("EndToEndToggle", "0"),
     ("CompletedTrainingVersion", "0"),
     ("IsRHD", "0"),
     ("IsMetric", "1"),
