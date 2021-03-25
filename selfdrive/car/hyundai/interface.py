@@ -175,7 +175,7 @@ class CarInterface(CarInterfaceBase):
       ret.gasMaxV = [0.53, 0.38, 0.31, 0.2, 0.14]
 
       ret.brakeMaxBP = [0.]
-      ret.brakeMaxV = [1.15]
+      ret.brakeMaxV = [1.3]
 
       ret.stoppingBrakeRate = 0.17  # brake_travel/s while trying to stop
       ret.startingBrakeRate = 0.8  # brake_travel/s while releasing on restart
