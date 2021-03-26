@@ -100,7 +100,7 @@ static void draw_lead(UIState *s, int idx) {
 
   float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * zoom;
   x = std::clamp(x, 0.f, s->viz_rect.right() - sz / 2);
-  y = std::fmin(s->viz_rect.bottom() - sz * .6,  y);
+  y = std::fmin(s->viz_rect.bottom() - sz * .6, y);
 
   NVGcolor color = COLOR_YELLOW;
   if(lead.getRadar())

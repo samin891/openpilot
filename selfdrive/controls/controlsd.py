@@ -161,6 +161,8 @@ class Controls:
       self.events.add(EventName.communityFeatureDisallowed, static=True)
     if not car_recognized:
       self.events.add(EventName.carUnrecognized, static=True)
+    elif self.read_only:
+      self.events.add(EventName.dashcamMode, static=True)
 
     # controlsd is driven by can recv, expected at 100Hz
     self.rk = Ratekeeper(100, print_delay_threshold=None)
@@ -225,8 +227,10 @@ class Controls:
 
     if self.can_rcv_error or (not CS.canValid and self.sm.frame > 5 / DT_CTRL):
       self.events.add(EventName.canError)
-    if (self.sm['pandaState'].safetyModel != self.CP.safetyModel and self.sm.frame > 2 / DT_CTRL) or \
-      self.mismatch_counter >= 200:
+
+    safety_mismatch = self.sm['pandaState'].safetyModel != self.CP.safetyModel
+    safety_mismatch = safety_mismatch or self.sm['pandaState'].safetyParam != self.CP.safetyParam
+    if (safety_mismatch and self.sm.frame > 2 / DT_CTRL) or self.mismatch_counter >= 200:
       self.events.add(EventName.controlsMismatch)
 
     if not self.sm['liveParameters'].valid:

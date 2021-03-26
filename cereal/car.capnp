@@ -99,8 +99,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     fanMalfunction @91;
     cameraMalfunction @92;
     gpsMalfunction @94;
-    startupOneplus @82;
     processNotRunning @95;
+    dashcamMode @96;
 
     radarCanErrorDEPRECATED @15;
     radarCommIssueDEPRECATED @67;
@@ -120,15 +120,16 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     focusRecoverActiveDEPRECATED @86;
     neosUpdateRequiredDEPRECATED @88;
     modelLagWarningDEPRECATED @93;
+    startupOneplusDEPRECATED @82;
     
-    turningIndicatorOn @96;
-    lkasButtonOff @97;
-    autoLaneChange @98;
+    turningIndicatorOn @97;
+    lkasButtonOff @98;
+    autoLaneChange @99;
 
     # scc smoother
-    sccSmootherStatus @99;
-    slowingDownSpeed @100;
-    slowingDownSpeedSound @101;
+    sccSmootherStatus @100;
+    slowingDownSpeed @101;
+    slowingDownSpeedSound @102;
   }
 }
 

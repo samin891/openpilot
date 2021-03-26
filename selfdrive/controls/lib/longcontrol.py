@@ -83,7 +83,7 @@ class LongControl():
       following = False
 
     if not following:
-      gas_max *= 0.85
+      gas_max *= 0.9
 
     self.long_control_state = long_control_state_trans(active, self.long_control_state, CS.vEgo,
                                                        v_target_future, self.v_pid, output_gb,

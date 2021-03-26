@@ -10,20 +10,18 @@ import cereal.messaging as messaging
 import selfdrive.crash as crash
 from common.basedir import BASEDIR
 from common.params import Params
-from common.spinner import Spinner
 from common.text_window import TextWindow
 from selfdrive.hardware import HARDWARE
-from selfdrive.manager.build import MAX_BUILD_PROGRESS, PREBUILT
 from selfdrive.manager.helpers import unblock_stdout
 from selfdrive.manager.process import ensure_running, launcher
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.registration import register
-from selfdrive.swaglog import add_logentries_handler, cloudlog
+from selfdrive.swaglog import cloudlog, add_file_handler
 from selfdrive.version import dirty, version
 from selfdrive.hardware.eon.apk import update_apks, pm_grant, appops_set, system
 
 
-def manager_init(spinner=None):
+def manager_init():
   params = Params()
   params.manager_start()
 
@@ -83,7 +81,7 @@ def manager_init(spinner=None):
     print("WARNING: failed to make /dev/shm")
 
   # set dongle id
-  reg_res = register(spinner)
+  reg_res = register(show_spinner=True)
   if reg_res:
     dongle_id = reg_res
   else:
@@ -99,16 +97,9 @@ def manager_init(spinner=None):
   crash.bind_extra(version=version, dirty=dirty, device=HARDWARE.get_device_type())
 
 
-def manager_prepare(spinner=None):
-  # build all processes
-  os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-  total = 100.0 - (0 if PREBUILT else MAX_BUILD_PROGRESS)
-  for i, p in enumerate(managed_processes.values()):
+def manager_prepare():
+  for p in managed_processes.values():
     p.prepare()
-    if spinner:
-      perc = (100.0 - total) + total * (i + 1) / len(managed_processes)
-      spinner.update_progress(perc, 100.)
 
 
 def manager_cleanup():
@@ -118,7 +109,7 @@ def manager_cleanup():
   cloudlog.info("everything is dead")
 
 
-def manager_thread(spinner=None):
+def manager_thread():
 
   Process(name="shutdownd", target=launcher, args=("selfdrive.shutdownd",)).start()
 
@@ -147,8 +138,6 @@ def manager_thread(spinner=None):
     ignore += os.getenv("BLOCK").split(",")
 
   ensure_running(managed_processes.values(), started=False, not_run=ignore)
-  if spinner:  # close spinner when ui has started
-    spinner.close()
 
   started_prev = False
   params = Params()
@@ -187,18 +176,25 @@ def manager_thread(spinner=None):
       break
 
 
-def main(spinner=None):
-  manager_init(spinner)
-  manager_prepare(spinner)
+def main():
+  prepare_only = os.getenv("PREPAREONLY") is not None
 
-  if os.getenv("PREPAREONLY") is not None:
+  manager_init()
+
+  # Start ui early so prepare can happen in the background
+  if not prepare_only:
+    managed_processes['ui'].start()
+
+  manager_prepare()
+
+  if prepare_only:
     return
 
   # SystemExit on sigterm
   signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(1))
 
   try:
-    manager_thread(spinner)
+    manager_thread()
   except Exception:
     traceback.print_exc()
     crash.capture_exception()
@@ -212,19 +208,16 @@ def main(spinner=None):
 
 if __name__ == "__main__":
   unblock_stdout()
-  spinner = Spinner()
-  spinner.update_progress(MAX_BUILD_PROGRESS, 100)
 
   try:
-    main(spinner)
+    main()
   except Exception:
-    add_logentries_handler(cloudlog)
+    add_file_handler(cloudlog)
     cloudlog.exception("Manager failed to start")
 
     # Show last 3 lines of traceback
     error = traceback.format_exc(-3)
     error = "Manager failed to start\n\n" + error
-    spinner.close()
     with TextWindow(error) as t:
       t.wait_for_exit()
 
